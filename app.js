@@ -53,7 +53,7 @@
     if (result.gaveUp) {
       phase = 'done';
       setRunning(false);
-      SL.toast('Bogo gave up after ' + SL.fmtInt(result.count) + ' steps. Try 6 items or fewer.', 4000);
+      SL.toast(SL.algoById(result.id).name + ' gave up after ' + SL.fmtInt(result.count) + ' steps. Try 6 items or fewer.', 4000);
       return;
     }
     phase = 'sweep';

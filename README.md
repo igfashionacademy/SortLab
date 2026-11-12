@@ -1,6 +1,6 @@
 # SortLab
 
-Free sorting algorithm visualizer: 22 algorithms, 8 styles, sound, battles and a vertical video maker. No build step, no server, no accounts.
+Free sorting algorithm visualizer: 33 algorithms, 12 styles (including 3D), sound, battles and a vertical video maker. No build step, no server, no accounts.
 
 ## Put it online
 

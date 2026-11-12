@@ -3,7 +3,7 @@
 (function (SL) {
   'use strict';
 
-  const OP = { CMP: 0, SWAP: 1, SET: 2, READ: 3 };
+  const OP = { CMP: 0, SWAP: 1, SET: 2, READ: 3, COLLAPSE: 4 };
   SL.OP = OP;
 
   const STEP_LIMIT = 3000000;
@@ -47,6 +47,8 @@
     set(i, v) { this.push(OP.SET, i, v); this.writes++; this.a[i] = v; }
     read(i) { this.push(OP.READ, i, 0); return this.a[i]; }
     get(i) { return this.a[i]; }
+    // One step that sorts the whole array at once (Quantum Bogolock)
+    collapse() { this.push(OP.COLLAPSE, 0, 0); this.writes += this.n; this.a.sort((x, y) => x - y); }
   }
 
   // ---------- shared pieces ----------
@@ -176,6 +178,92 @@
     bsort(0, t.n, true);
   }
 
+  function dualpivot(t) {
+    const st = [0, t.n - 1];
+    while (st.length) {
+      const hi = st.pop(), lo = st.pop();
+      if (lo >= hi) continue;
+      if (t.cmp(lo, hi) > 0) t.swap(lo, hi);
+      let lt = lo + 1, gt = hi - 1, i = lo + 1;
+      while (i <= gt) {
+        if (t.cmp(i, lo) < 0) { t.swap(i, lt); lt++; i++; }
+        else if (t.cmp(i, hi) > 0) { t.swap(i, gt); gt--; }
+        else i++;
+      }
+      lt--; gt++;
+      t.swap(lo, lt);
+      t.swap(hi, gt);
+      st.push(lo, lt - 1, lt + 1, gt - 1, gt + 1, hi);
+    }
+  }
+
+  // Quick sort that switches to heap sort when it goes too deep, insertion for tiny parts
+  function intro(t) {
+    function heapRange(lo, hi) {
+      const n = hi - lo + 1;
+      function sift(i, size) {
+        for (;;) {
+          const l = 2 * i + 1, r = l + 1;
+          let m = i;
+          if (l < size && t.cmp(lo + l, lo + m) > 0) m = l;
+          if (r < size && t.cmp(lo + r, lo + m) > 0) m = r;
+          if (m === i) return;
+          t.swap(lo + i, lo + m);
+          i = m;
+        }
+      }
+      for (let i = (n >> 1) - 1; i >= 0; i--) sift(i, n);
+      for (let e = n - 1; e > 0; e--) { t.swap(lo, lo + e); sift(0, e); }
+    }
+    const st = [0, t.n - 1, 2 * Math.floor(Math.log2(t.n))];
+    while (st.length) {
+      const depth = st.pop(), hi = st.pop(), lo = st.pop();
+      if (hi - lo < 16) { if (hi > lo) insertionRange(t, lo, hi); continue; }
+      if (depth === 0) { heapRange(lo, hi); continue; }
+      const mid = (lo + hi) >> 1;
+      // median of three ends up at hi
+      if (t.cmp(mid, lo) < 0) t.swap(mid, lo);
+      if (t.cmp(hi, lo) < 0) t.swap(hi, lo);
+      if (t.cmp(mid, hi) < 0) t.swap(mid, hi);
+      let p = lo;
+      for (let i = lo; i < hi; i++) if (t.cmp(i, hi) < 0) { t.swap(i, p); p++; }
+      t.swap(p, hi);
+      st.push(lo, p - 1, depth - 1, p + 1, hi, depth - 1);
+    }
+  }
+
+  function circle(t) {
+    function pass(lo, hi) {
+      if (lo >= hi) return false;
+      let swapped = false, l = lo, h = hi;
+      while (l < h) {
+        if (t.cmp(l, h) > 0) { t.swap(l, h); swapped = true; }
+        l++; h--;
+      }
+      if (l === h && t.cmp(l, h + 1) > 0) { t.swap(l, h + 1); swapped = true; }
+      const m = (lo + hi) >> 1;
+      const a = pass(lo, m), b = pass(m + 1, hi);
+      return swapped || a || b;
+    }
+    while (pass(0, t.n - 1));
+  }
+
+  // Batcher's odd-even merge sort, works for any n
+  function oddevenmerge(t) {
+    const n = t.n;
+    for (let p = 1; p < n; p <<= 1) {
+      for (let k = p; k >= 1; k >>= 1) {
+        for (let j = k % p; j <= n - 1 - k; j += 2 * k) {
+          for (let i = 0; i <= Math.min(k - 1, n - j - k - 1); i++) {
+            if (Math.floor((i + j) / (2 * p)) === Math.floor((i + j + k) / (2 * p)) && t.cmp(i + j, i + j + k) > 0) {
+              t.swap(i + j, i + j + k);
+            }
+          }
+        }
+      }
+    }
+  }
+
   // ---------- slow and simple ----------
 
   function insertion(t) { insertionRange(t, 0, t.n - 1); }
@@ -259,6 +347,40 @@
     }
   }
 
+  function binaryinsertion(t) {
+    for (let i = 1; i < t.n; i++) {
+      let lo = 0, hi = i;
+      while (lo < hi) {
+        const m = (lo + hi) >> 1;
+        if (t.cmp(m, i) > 0) hi = m; else lo = m + 1;
+      }
+      if (lo === i) continue;
+      const x = t.read(i);
+      for (let j = i; j > lo; j--) t.set(j, t.get(j - 1));
+      t.set(lo, x);
+    }
+  }
+
+  function doubleselection(t) {
+    let lo = 0, hi = t.n - 1;
+    while (lo < hi) {
+      let mn = lo, mx = lo;
+      for (let j = lo + 1; j <= hi; j++) {
+        if (t.cmp(j, mn) < 0) mn = j;
+        if (t.cmp(j, mx) > 0) mx = j;
+      }
+      t.swap(lo, mn);
+      if (mx === lo) mx = mn;
+      t.swap(hi, mx);
+      lo++; hi--;
+    }
+  }
+
+  function exchange(t) {
+    for (let i = 0; i < t.n - 1; i++)
+      for (let j = i + 1; j < t.n; j++) if (t.cmp(j, i) < 0) t.swap(i, j);
+  }
+
   // ---------- no comparing ----------
 
   function radix(t) {
@@ -329,6 +451,22 @@
     }
   }
 
+  // MSD radix sort on bits, in place: splits each range into 0s then 1s
+  function binaryradix(t) {
+    let max = 0;
+    for (let i = 0; i < t.n; i++) max = Math.max(max, t.read(i));
+    (function r(lo, hi, bit) {
+      if (lo >= hi || bit < 0) return;
+      let i = lo, j = hi;
+      while (i <= j) {
+        if (((t.read(i) >> bit) & 1) === 0) i++;
+        else { t.swap(i, j); j--; }
+      }
+      r(lo, j, bit - 1);
+      r(i, hi, bit - 1);
+    })(0, t.n - 1, Math.floor(Math.log2(Math.max(1, max))));
+  }
+
   // ---------- just for fun ----------
 
   function bogo(t) {
@@ -352,8 +490,8 @@
     })(0, t.n - 1);
   }
 
-  // Shuffles only the items that are still in the wrong spot, and keeps the rest
-  function keepbogo(t) {
+  // Bogolock: bogo shuffles, but an item that lands in its sorted spot is locked there for good
+  function bogolock(t) {
     const n = t.n;
     const target = t.a.slice().sort((x, y) => x - y);
     let free = [];
@@ -363,6 +501,31 @@
       free = free.filter((i) => t.cmpv(t.get(i), target[i], i, i) !== 0);
     }
   }
+
+  // Bozo: swap two random items, check, repeat
+  function bozo(t) {
+    const n = t.n;
+    const isSorted = () => { for (let i = 0; i < n - 1; i++) if (t.cmp(i, i + 1) > 0) return false; return true; };
+    while (!isSorted()) {
+      if (t.len > BOGO_LIMIT) { t.gaveUp = true; return; }
+      t.swap(Math.floor(t.rnd() * n), Math.floor(t.rnd() * n));
+    }
+  }
+
+  // Slowsort: "multiply and surrender", deliberately the slowest sensible recursion
+  function slowsort(t) {
+    (function s(i, j) {
+      if (i >= j) return;
+      const m = (i + j) >> 1;
+      s(i, m);
+      s(m + 1, j);
+      if (t.cmp(j, m) < 0) t.swap(j, m);
+      s(i, j - 1);
+    })(0, t.n - 1);
+  }
+
+  // Quantum Bogolock: shuffle once in every universe at the same time, keep the sorted one
+  function quantumbogolock(t) { t.collapse(); }
 
   SL.ALGO_GROUPS = ['Fast', 'Slow and simple', 'No comparing', 'Just for fun'];
 
@@ -374,6 +537,10 @@
     { id: 'shell', name: 'Shell Sort', group: 'Fast', cx: 'O(n^1.3)', fn: shell },
     { id: 'comb', name: 'Comb Sort', group: 'Fast', cx: 'O(n log n)', fn: comb },
     { id: 'bitonic', name: 'Bitonic Sort', group: 'Fast', cx: 'O(n log² n)', fn: bitonic },
+    { id: 'dualpivot', name: 'Dual-Pivot Quick Sort', group: 'Fast', cx: 'O(n log n)', fn: dualpivot },
+    { id: 'intro', name: 'Intro Sort', group: 'Fast', cx: 'O(n log n)', fn: intro },
+    { id: 'circle', name: 'Circle Sort', group: 'Fast', cx: 'O(n log² n)', fn: circle },
+    { id: 'oddevenmerge', name: 'Odd-Even Merge Sort', group: 'Fast', cx: 'O(n log² n)', fn: oddevenmerge },
     { id: 'insertion', name: 'Insertion Sort', group: 'Slow and simple', cx: 'O(n²)', fn: insertion },
     { id: 'selection', name: 'Selection Sort', group: 'Slow and simple', cx: 'O(n²)', fn: selection },
     { id: 'bubble', name: 'Bubble Sort', group: 'Slow and simple', cx: 'O(n²)', fn: bubble },
@@ -382,13 +549,20 @@
     { id: 'oddeven', name: 'Odd-Even Sort', group: 'Slow and simple', cx: 'O(n²)', fn: oddeven },
     { id: 'cycle', name: 'Cycle Sort', group: 'Slow and simple', cx: 'O(n²)', fn: cycle },
     { id: 'pancake', name: 'Pancake Sort', group: 'Slow and simple', cx: 'O(n²)', fn: pancake },
+    { id: 'binaryinsertion', name: 'Binary Insertion Sort', group: 'Slow and simple', cx: 'O(n²)', fn: binaryinsertion },
+    { id: 'doubleselection', name: 'Double Selection Sort', group: 'Slow and simple', cx: 'O(n²)', fn: doubleselection },
+    { id: 'exchange', name: 'Exchange Sort', group: 'Slow and simple', cx: 'O(n²)', fn: exchange },
     { id: 'radix', name: 'Radix Sort', group: 'No comparing', cx: 'O(n·k)', fn: radix },
     { id: 'counting', name: 'Counting Sort', group: 'No comparing', cx: 'O(n + k)', fn: counting },
     { id: 'bucket', name: 'Bucket Sort', group: 'No comparing', cx: 'O(n + k)', fn: bucket },
     { id: 'gravity', name: 'Gravity Sort', group: 'No comparing', cx: 'O(S)', fn: gravity },
+    { id: 'binaryradix', name: 'Binary Radix Sort (MSD)', group: 'No comparing', cx: 'O(n·k)', fn: binaryradix },
     { id: 'bogo', name: 'Bogo Sort', group: 'Just for fun', cx: 'O(n·n!)', fn: bogo },
     { id: 'stooge', name: 'Stooge Sort', group: 'Just for fun', cx: 'O(n^2.71)', fn: stooge },
-    { id: 'keepbogo', name: 'Keep Bogo Sort', group: 'Just for fun', cx: 'O(n²)', fn: keepbogo }
+    { id: 'bogolock', name: 'Bogolock', group: 'Just for fun', cx: 'O(n²)', fn: bogolock },
+    { id: 'bozo', name: 'Bozo Sort', group: 'Just for fun', cx: 'O(n!)', fn: bozo },
+    { id: 'slowsort', name: 'Slowsort', group: 'Just for fun', cx: 'O(n^log n)', fn: slowsort },
+    { id: 'quantumbogolock', name: 'Quantum Bogolock', group: 'Just for fun', cx: 'O(1)', fn: quantumbogolock }
   ];
 
   SL.algoById = (id) => SL.ALGOS.find((a) => a.id === id) || SL.ALGOS[0];

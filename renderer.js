@@ -1,4 +1,4 @@
-// Draws the array in 8 styles, plus background and glow
+// Draws the array in 12 styles (4 of them 3D), plus background and glow
 (function (SL) {
   'use strict';
 
@@ -12,8 +12,72 @@
     { id: 'scatter', name: 'Scatter' },
     { id: 'ring', name: 'Ring' },
     { id: 'sunburst', name: 'Sunburst' },
-    { id: 'tiles', name: 'Tiles' }
+    { id: 'tiles', name: 'Tiles' },
+    { id: 'tower', name: 'Tower', group: '3D' },
+    { id: 'blocks', name: 'Blocks', group: '3D' },
+    { id: 'sphere', name: 'Sphere', group: '3D' },
+    { id: 'helix', name: 'Helix', group: '3D' }
   ];
+
+  // 3D styles: each item becomes a dot or a column in unit space, then gets tilted,
+  // spun (if Spin is on), perspective-projected and painted far to near.
+  function draw3d(ctx, mode, n, arr, maxV, col, cx, cy, R, look, time) {
+    const yaw = 0.6 + (look.spin ? time * 0.5 : 0), cY = Math.cos(yaw), sY = Math.sin(yaw);
+    const cP = Math.cos(0.45), sP = Math.sin(0.45);
+    const S = R * 0.72;
+    const proj = (x, y, z) => {
+      const x1 = x * cY - z * sY, z1 = x * sY + z * cY;
+      const y1 = y * cP + z1 * sP, z2 = z1 * cP - y * sP; // tilt so we look down from above
+      const f = 3.2 / (3.2 + z2);
+      return [cx + x1 * f * S, cy - y1 * f * S, z2, f];
+    };
+    const seg = mode === 'tower' || mode === 'blocks';
+    const c = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / c);
+    const A = new Array(n), B = seg ? new Array(n) : null;
+    for (let k = 0; k < n; k++) {
+      const v = arr[k] / maxV;
+      const e = (arr[k] - (k + 1) * (maxV / n)) / maxV; // 0 when the item is in its sorted spot
+      if (mode === 'tower') {
+        const a = (k / n) * TAU;
+        A[k] = proj(Math.cos(a) * 0.9, -0.7, Math.sin(a) * 0.9);
+        B[k] = proj(Math.cos(a) * 0.9, -0.7 + 1.4 * v, Math.sin(a) * 0.9);
+      } else if (mode === 'blocks') {
+        const gx = (((k % c) + 0.5) / c * 2 - 1) * 0.9, gz = ((Math.floor(k / c) + 0.5) / rows * 2 - 1) * 0.9 * rows / c;
+        A[k] = proj(gx, -0.6, gz);
+        B[k] = proj(gx, -0.6 + 1.2 * v, gz);
+      } else if (mode === 'sphere') {
+        const yy = 1 - (2 * (k + 0.5)) / n, rr = Math.sqrt(1 - yy * yy), ph = k * 2.39996;
+        const r = 0.85 + e * 0.6;
+        A[k] = proj(Math.cos(ph) * rr * r, yy * r, Math.sin(ph) * rr * r);
+      } else {
+        const f = (k + 0.5) / n, a = f * 4 * TAU, r = 0.7 + e * 0.6;
+        A[k] = proj(Math.cos(a) * r, -0.9 + 1.8 * f, Math.sin(a) * r);
+      }
+    }
+    const order = Array.from({ length: n }, (_, k) => k);
+    order.sort((i, j) => A[j][2] - A[i][2]);
+    if (seg) {
+      const w = mode === 'tower' ? (TAU * 0.9 * S) / n * 0.6 : ((1.8 * S) / c) * 0.6;
+      ctx.lineCap = 'butt';
+      for (const k of order) {
+        ctx.strokeStyle = col(k);
+        ctx.lineWidth = SL.clamp(w, 1, 14) * A[k][3];
+        ctx.beginPath();
+        ctx.moveTo(A[k][0], A[k][1]);
+        ctx.lineTo(B[k][0], B[k][1] - 0.5);
+        ctx.stroke();
+      }
+    } else {
+      const d = mode === 'sphere' ? (S * 1.6) / Math.sqrt(n) : (4 * TAU * 0.7 * S) / n * 0.45;
+      const dr = SL.clamp(d, 1.2, 8);
+      for (const k of order) {
+        ctx.fillStyle = col(k);
+        ctx.beginPath();
+        ctx.arc(A[k][0], A[k][1], dr * A[k][3], 0, TAU);
+        ctx.fill();
+      }
+    }
+  }
 
   SL.BACKGROUNDS = [
     { id: 'midnight', name: 'Midnight', css: 'radial-gradient(circle,#1a2a55,#04060c)' },
@@ -290,6 +354,12 @@
         }
         break;
       }
+      case 'tower':
+      case 'blocks':
+      case 'sphere':
+      case 'helix':
+        draw3d(ctx, look.mode, n, arr, maxV, col, cx, cy, R, look, time);
+        break;
     }
   };
 })(window.SL);

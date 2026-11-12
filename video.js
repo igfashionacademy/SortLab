@@ -271,7 +271,7 @@
         if (d) d.textContent = SL.fmtDur(g.sortDurs[j]);
         let note = '';
         if (r.error) note = '<em class="warn">Too many steps, stopped early</em>';
-        else if (r.gaveUp) note = '<em class="warn">Gives up (array too big for Bogo)</em>';
+        else if (r.gaveUp) note = '<em class="warn">Gives up (array too big)</em>';
         rows.push('<li><span>' + SL.algoById(r.id).name + '</span><span>' + SL.fmtInt(r.count) + ' steps · ' + SL.fmtDur(g.sortDurs[j]) + '</span>' + note + '</li>');
       });
     });

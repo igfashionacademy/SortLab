@@ -66,6 +66,12 @@
           this.writes++;
           if (p >= markFrom) this.mark(x, 2);
           note = x;
+        } else if (t === 4) {
+          // collapse: the whole array becomes sorted in one step
+          a.sort((u, v) => u - v);
+          this.writes += this.n;
+          for (let i = 0; i < this.n; i++) this.mark(i, 2);
+          note = this.n - 1;
         } else {
           if (p >= markFrom) this.mark(x, 1);
           note = x;
