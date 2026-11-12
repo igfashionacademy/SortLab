@@ -116,10 +116,10 @@
             <div class="progress-text hint" data-k="progressText"></div>
             <div class="row">
               <button class="btn" data-k="preview">${SL.ICONS.play} Preview</button>
-              <button class="btn primary grow" data-k="record">Record video</button>
+              <button class="btn primary grow" data-k="record">Make video</button>
             </div>
             <a class="btn block" data-k="download" hidden>Download video</a>
-            <p class="hint">Videos record in real time, so recording takes as long as the video. Keep this tab open and on screen until it's done. Output is 1080×1920, ready for TikTok, Reels and Shorts.</p>
+            <p class="hint">Output is 1080×1920 MP4, ready for TikTok, Reels and Shorts. Keep this tab open until it's done. In Chrome and Edge the video is built frame by frame, so sound and picture line up exactly.</p>
           </div>
         </div>
       </div>`;
@@ -282,7 +282,7 @@
       '<p class="hint">Worked out from the exact steps each sort takes at ' + SL.fmtSpeed(vs.speed) +
       ', plus pauses and a ' + SL.SWEEP_SEC + 's finish check.</p>' + long;
     showCanvas();
-    frameAt(Math.min(plan.total, vs.intro * 0.5), { si: -1, players: [] }, false);
+    frameAt(Math.min(plan.total, vs.intro * 0.5), { si: -1, players: [] });
   }
 
   function showCanvas() {
@@ -377,9 +377,9 @@
     if (vs.handle) text(c, vs.handle, W / 2, 1850, 40, 600, 'rgba(255,255,255,0.6)');
   }
 
-  // Draws the video at time T (seconds)
-  function frameAt(T, rt, withSound) {
-    if (!plan || !plan.segs.length) return;
+  // Moves the sorts to time T (seconds). onNote(frac, playerIndex) is called for each sound.
+  function advance(T, rt, onNote) {
+    if (!plan || !plan.segs.length) return null;
     let si = plan.segs.findIndex((g) => T < g.start + g.dur);
     if (si < 0) si = plan.segs.length - 1;
     const g = plan.segs[si];
@@ -390,13 +390,21 @@
     const ts = T - g.start - vs.intro;
     rt.players.forEach((p, j) => {
       if (ts < 0) return;
-      if (p.stepTo(Math.floor(ts * vs.speed)) && withSound) SL.audio.play(p.noteValue(), true);
+      if (p.stepTo(Math.floor(ts * vs.speed)) && onNote) onNote(p.noteValue(), j);
       if (p.done && !g.results[j].gaveUp) {
         const f = (ts - g.sortDurs[j]) / SL.SWEEP_SEC;
         if (f >= 1) p.setSweep(-1);
-        else if (f >= 0 && p.setSweep(f) && withSound) SL.audio.play(f, true);
+        else if (f >= 0 && p.setSweep(f) && onNote) onNote(f, j);
       }
     });
+    return { g, si };
+  }
+
+  // Draws the video at time T (seconds)
+  function frameAt(T, rt) {
+    const st = advance(T, rt, null);
+    if (!st) return;
+    const { g, si } = st;
     const look = SL.buildLook(Object.assign({}, s, { mode: vs.mode, labels: false }), getPhoto());
     const battle = rt.players.length === 2;
     const rects = battle
@@ -405,6 +413,35 @@
     SL.renderFrame(ctx, W, H, look,
       (l) => rt.players.forEach((p, j) => SL.drawViz(l, rects[j], p.view(), look, T)),
       (c) => drawOverlay(c, g, rt.players, si, rects));
+  }
+
+  // ---------- soundtrack ----------
+
+  // Replays the whole plan once and writes down exactly when every note happens
+  function collectNotes() {
+    const notes = [];
+    const rt = { si: -1, players: [] };
+    const last = [-1, -1];
+    const dt = 1 / 240;
+    const gain = plan.segs.some((g) => g.results.length === 2) ? 0.7 : 1;
+    for (let i = 0, T = 0; T < plan.total; i++, T = i * dt) {
+      advance(T, rt, (frac, j) => {
+        if (frac < 0 || T - last[j] < 0.014) return;
+        last[j] = T;
+        notes.push([T, frac, gain]);
+      });
+    }
+    return notes;
+  }
+
+  // Builds the soundtrack ahead of time so sound and picture can't drift apart
+  async function buildSoundtrack() {
+    if (!vs.sound || !SL.audio.ctx) return null;
+    try {
+      return await SL.audio.renderNotes(collectNotes(), plan.total);
+    } catch (e) {
+      return null;
+    }
   }
 
   // ---------- preview / record ----------
@@ -424,7 +461,7 @@
   function setBusy(mode) {
     busy = mode;
     modal.classList.toggle('busy', !!mode);
-    el.record.innerHTML = mode === 'record' ? 'Stop recording' : 'Record video';
+    el.record.innerHTML = mode === 'record' ? 'Stop' : 'Make video';
     el.preview.innerHTML = mode === 'preview' ? SL.ICONS.pause + ' Stop' : SL.ICONS.play + ' Preview';
     el.record.disabled = mode === 'preview';
     el.preview.disabled = mode === 'record';
@@ -447,7 +484,53 @@
 
     let rec = null, chunks = [], stopped = null, videoTracks = [];
     const rt = { si: -1, players: [] };
-    frameAt(0, rt, false);
+    frameAt(0, rt);
+
+    el.progressText.textContent = 'Preparing sound...';
+    await new Promise((r) => setTimeout(r, 30));
+    const soundtrack = await buildSoundtrack();
+    if (cancelled) { setBusy(null); refresh(); return; }
+    // fresh state after building the soundtrack
+    rt.si = -1;
+    frameAt(0, rt);
+
+    // Best path: build the file frame by frame with exact timestamps
+    if (recordIt) {
+      const withAudio = vs.sound && !!soundtrack;
+      let exact = false;
+      try { exact = await SL.canExactExport(W, H, vs.fps, withAudio, soundtrack ? soundtrack.sampleRate : 48000); } catch (e) { exact = false; }
+      if (exact) {
+        let blob = null;
+        try {
+          const rtx = { si: -1, players: [] };
+          blob = await SL.exportMP4({
+            canvas,
+            fps: vs.fps,
+            total: plan.total,
+            drawFrame: (T) => frameAt(T, rtx),
+            audioBuffer: withAudio ? soundtrack : null,
+            volume: SL.audio.volume * 0.5,
+            isCancelled: () => cancelled,
+            onProgress: (f) => {
+              el.bar.style.width = (f * 100).toFixed(1) + '%';
+              el.progressText.textContent = 'Making video ' + Math.round(f * 100) + '%';
+            }
+          });
+        } catch (e) {
+          blob = null;
+          if (!cancelled) SL.toast('Something went wrong while making the video. Trying the backup recorder.', 4000);
+          exact = false;
+        }
+        if (exact || cancelled) {
+          setBusy(null);
+          if (!blob) { SL.toast('Stopped.'); refresh(); return; }
+          showResult(blob, 'video/mp4');
+          return;
+        }
+        rt.si = -1;
+        frameAt(0, rt);
+      }
+    }
 
     if (recordIt) {
       const vstream = canvas.captureStream(vs.fps);
@@ -467,17 +550,33 @@
       rec.start(500);
     }
 
-    const t0 = performance.now();
+    // The video follows the audio clock, so both stay locked together
+    const actx = SL.audio.ctx;
+    let source = null, clock;
+    if (actx) {
+      const startAt = actx.currentTime + 0.15;
+      if (soundtrack) {
+        source = actx.createBufferSource();
+        source.buffer = soundtrack;
+        source.connect(SL.audio.master);
+        source.start(startAt);
+      }
+      clock = () => actx.currentTime - startAt;
+    } else {
+      const t0 = performance.now() + 150;
+      clock = () => (performance.now() - t0) / 1000;
+    }
+
     await new Promise((resolve) => {
       function tick() {
         if (cancelled) return resolve();
-        const T = (performance.now() - t0) / 1000;
+        const T = Math.max(0, clock());
         if (T >= plan.total) {
-          frameAt(plan.total - 0.0001, rt, false);
+          frameAt(plan.total - 0.0001, rt);
           el.bar.style.width = '100%';
           return resolve();
         }
-        frameAt(T, rt, recordIt ? vs.sound : true);
+        frameAt(T, rt);
         el.bar.style.width = ((T / plan.total) * 100).toFixed(1) + '%';
         el.progressText.textContent = (recordIt ? 'Recording ' : 'Preview ') + SL.fmtDur(T) + ' / ' + SL.fmtDur(plan.total);
         requestAnimationFrame(tick);
@@ -485,6 +584,7 @@
       requestAnimationFrame(tick);
     });
 
+    if (source) { try { source.stop(); } catch (e) { /* already ended */ } source.disconnect(); }
     if (rec) {
       await new Promise((r) => setTimeout(r, 120));
       rec.stop();
@@ -500,8 +600,10 @@
       return;
     }
 
-    const type = (rec.mimeType || 'video/webm').split(';')[0];
-    const blob = new Blob(chunks, { type });
+    showResult(new Blob(chunks, { type: (rec.mimeType || 'video/webm').split(';')[0] }), (rec.mimeType || 'video/webm').split(';')[0]);
+  }
+
+  function showResult(blob, type) {
     if (lastUrl) URL.revokeObjectURL(lastUrl);
     lastUrl = URL.createObjectURL(blob);
     el.video.src = lastUrl;

@@ -50,6 +50,30 @@
       return this.streamDest.stream;
     }
 
+    // Renders a list of [time, frac, gain] notes into one audio buffer
+    renderNotes(notes, duration) {
+      const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!OAC || !notes.length) return Promise.resolve(null);
+      const rate = 48000;
+      const oc = new OAC(1, Math.ceil((duration + 0.3) * rate), rate);
+      const peak = this.wave === 'square' || this.wave === 'sawtooth' ? 0.18 : 0.35;
+      for (const [t, frac, gain] of notes) {
+        const f = this.low * Math.pow(this.high / this.low, SL.clamp(frac, 0, 1));
+        const o = oc.createOscillator();
+        const g = oc.createGain();
+        o.type = this.wave;
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(peak * gain, t + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0008, t + 0.09);
+        o.connect(g);
+        g.connect(oc.destination);
+        o.start(t);
+        o.stop(t + 0.1);
+      }
+      return oc.startRendering();
+    }
+
     play(frac, force) {
       if ((!this.enabled && !force) || frac < 0 || !this.ready) return;
       const now = this.ctx.currentTime;
