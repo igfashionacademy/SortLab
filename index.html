@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SortLab - Watch sorting algorithms come alive</title>
+  <meta name="description" content="Free sorting algorithm visualizer with 22 algorithms, 8 styles, sound, battles and a video maker for TikTok, Reels and Shorts.">
+  <meta name="theme-color" content="#07090f">
+  <meta property="og:title" content="SortLab">
+  <meta property="og:description" content="22 sorting algorithms, 8 styles, sound, battles and a free video maker.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28"><span>SortLab</span></a>
+    <nav class="nav">
+      <a href="index.html" class="active">Visualizer</a>
+      <a href="battle.html">Battle</a>
+    </nav>
+    <button class="btn primary" id="openVideo">Make video</button>
+  </header>
+
+  <main class="stage-wrap">
+    <canvas id="stage" aria-label="Sorting visualization"></canvas>
+    <button class="sound-hint" id="soundHint">Tap for sound</button>
+  </main>
+
+  <section class="dock">
+    <div class="dock-row">
+      <select id="algoSelect" class="select algo-select" aria-label="Algorithm"></select>
+      <div class="chips" id="modeChips"></div>
+    </div>
+    <div class="dock-row">
+      <div class="btn-group">
+        <button class="btn icon" id="btnNew" title="New array (N)" aria-label="New array"></button>
+        <button class="btn primary icon" id="btnPlay" title="Play (Space)" aria-label="Play or pause"></button>
+        <button class="btn icon" id="btnStep" title="One step (Right arrow)" aria-label="One step"></button>
+        <button class="btn icon" id="btnReset" title="Reset (R)" aria-label="Reset"></button>
+      </div>
+      <label class="slider"><span>Speed <b id="speedVal"></b></span><input type="range" id="speed" min="0" max="1000"></label>
+      <label class="slider"><span>Items <b id="sizeVal"></b></span><input type="range" id="size" min="0" max="100" step="0.1"></label>
+      <button class="btn" id="openCustomize">Customize</button>
+    </div>
+  </section>
+
+  <aside class="drawer" id="drawer"></aside>
+  <div class="modal" id="videoModal"></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="core.js"></script>
+  <script src="algorithms.js"></script>
+  <script src="player.js"></script>
+  <script src="palettes.js"></script>
+  <script src="audio.js"></script>
+  <script src="renderer.js"></script>
+  <script src="settings.js"></script>
+  <script src="panel.js"></script>
+  <script src="video.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

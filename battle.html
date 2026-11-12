@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SortLab Battle - Race two sorting algorithms</title>
+  <meta name="description" content="Pick two sorting algorithms and race them on the same array.">
+  <meta name="theme-color" content="#07090f">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28"><span>SortLab</span></a>
+    <nav class="nav">
+      <a href="index.html">Visualizer</a>
+      <a href="battle.html" class="active">Battle</a>
+    </nav>
+    <a class="btn primary" href="index.html#video" id="toVideo">Make video</a>
+  </header>
+
+  <main class="battle-grid">
+    <section class="battle-panel">
+      <div class="battle-head">
+        <span class="tag">A</span>
+        <select class="select" id="algoA" aria-label="Algorithm A"></select>
+        <span class="battle-stat" id="statA"></span>
+      </div>
+      <div class="battle-canvas"><canvas id="stageA"></canvas></div>
+    </section>
+    <section class="battle-panel">
+      <div class="battle-head">
+        <span class="tag">B</span>
+        <select class="select" id="algoB" aria-label="Algorithm B"></select>
+        <span class="battle-stat" id="statB"></span>
+      </div>
+      <div class="battle-canvas"><canvas id="stageB"></canvas></div>
+    </section>
+    <div class="winner" id="winner"></div>
+    <button class="sound-hint" id="soundHint">Tap for sound</button>
+  </main>
+
+  <section class="dock">
+    <div class="dock-row">
+      <div class="btn-group">
+        <button class="btn icon" id="btnNew" title="New array (N)" aria-label="New array"></button>
+        <button class="btn primary icon" id="btnPlay" title="Start (Space)" aria-label="Start or pause"></button>
+        <button class="btn icon" id="btnReset" title="Reset (R)" aria-label="Reset"></button>
+      </div>
+      <label class="slider"><span>Speed <b id="speedVal"></b></span><input type="range" id="speed" min="0" max="1000"></label>
+      <label class="slider"><span>Items <b id="sizeVal"></b></span><input type="range" id="size" min="0" max="100" step="0.1"></label>
+      <button class="btn" id="openCustomize">Customize</button>
+    </div>
+    <div class="dock-row">
+      <div class="chips" id="modeChips"></div>
+    </div>
+  </section>
+
+  <aside class="drawer" id="drawer"></aside>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="core.js"></script>
+  <script src="algorithms.js"></script>
+  <script src="player.js"></script>
+  <script src="palettes.js"></script>
+  <script src="audio.js"></script>
+  <script src="renderer.js"></script>
+  <script src="settings.js"></script>
+  <script src="panel.js"></script>
+  <script src="battle.js"></script>
+</body>
+</html>
