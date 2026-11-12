@@ -10,9 +10,6 @@
   const canvas = $('stage');
   const ctx = canvas.getContext('2d');
   const btnPlay = $('btnPlay');
-  const speedIn = $('speed');
-  const sizeIn = $('size');
-  const algoSel = $('algoSelect');
 
   let photo = null;
   let look = null;
@@ -47,8 +44,9 @@
 
   function setRunning(v) {
     running = v;
-    btnPlay.innerHTML = v ? SL.ICONS.pause : SL.ICONS.play;
-    btnPlay.title = v ? 'Pause (Space)' : 'Play (Space)';
+    btnPlay.innerHTML = v ? SL.ICONS.stop : SL.ICONS.play;
+    btnPlay.classList.toggle('playing', v);
+    btnPlay.title = v ? 'Stop (Space)' : 'Play (Space)';
   }
 
   function startSweep() {
@@ -155,31 +153,15 @@
   window.addEventListener('pointerdown', () => audio.unlock(), { once: true });
 
   // ---------- dock ----------
-  algoSel.innerHTML = SL.algoOptionsHTML(s.algo);
-  algoSel.addEventListener('change', () => { s.algo = algoSel.value; save(); compute(); });
-
+  const algoChips = SL.buildChips($('algoChips'), SL.ALGOS, () => s.algo, (id) => { s.algo = id; save(); compute(); });
   const chips = SL.buildModeChips($('modeChips'), s, () => { rebuildLook(); save(); });
 
   function syncDock() {
-    speedIn.value = SL.sliderFromSpeed(s.speed);
-    $('speedVal').textContent = SL.fmtSpeed(s.speed);
-    sizeIn.value = SL.sliderFromN(s.n);
-    $('sizeVal').textContent = s.n;
-    algoSel.value = s.algo;
+    algoChips.sync();
     chips.sync();
   }
 
-  speedIn.addEventListener('input', () => { s.speed = SL.speedFromSlider(+speedIn.value); syncDock(); panel.sync(); save(); });
-  sizeIn.addEventListener('input', () => { $('sizeVal').textContent = SL.nFromSlider(+sizeIn.value); });
-  sizeIn.addEventListener('change', () => { s.n = SL.nFromSlider(+sizeIn.value); save(); panel.sync(); newArray(); });
-
   btnPlay.addEventListener('click', togglePlay);
-  $('btnStep').addEventListener('click', stepOnce);
-  $('btnReset').addEventListener('click', resetRun);
-  $('btnNew').addEventListener('click', newArray);
-  $('btnNew').innerHTML = SL.ICONS.shuffle;
-  $('btnStep').innerHTML = SL.ICONS.step;
-  $('btnReset').innerHTML = SL.ICONS.reset;
 
   document.addEventListener('keydown', (e) => {
     if (e.target.closest('input, select, textarea') || document.querySelector('.modal.open')) return;
@@ -194,6 +176,8 @@
   const panel = SL.buildPanel(drawerEl, s, (key, value) => {
     if (key === 'photo') photo = value;
     if (['n', 'order', 'newArray'].includes(key)) newArray();
+    if (key === 'reset') resetRun();
+    if (key === 'step') stepOnce();
     if (['sound', 'wave', 'volume', 'pitchLow', 'pitchHigh'].includes(key)) audio.configure(s);
     rebuildLook();
     syncDock();

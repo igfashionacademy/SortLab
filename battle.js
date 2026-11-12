@@ -20,7 +20,7 @@
     const canvas = $(i ? 'stageB' : 'stageA');
     return {
       i, canvas, ctx: canvas.getContext('2d'), W: 1, H: 1,
-      select: $(i ? 'algoB' : 'algoA'),
+      chipsEl: $(i ? 'algoB' : 'algoA'),
       stat: $(i ? 'statB' : 'statA'),
       player: new SL.Player(), result: null, sweepT: 0, phase: 'ready'
     };
@@ -55,7 +55,8 @@
 
   function setRunning(v) {
     running = v;
-    $('btnPlay').innerHTML = v ? SL.ICONS.pause : SL.ICONS.play;
+    $('btnPlay').innerHTML = v ? SL.ICONS.stop : SL.ICONS.play;
+    $('btnPlay').classList.toggle('playing', v);
   }
 
   function togglePlay() {
@@ -130,34 +131,27 @@
 
   // ---------- controls ----------
   sides.forEach((sd) => {
-    sd.select.innerHTML = SL.algoOptionsHTML(picks[sd.i]);
-    sd.select.addEventListener('change', () => { picks[sd.i] = sd.select.value; save(); compute(sd); resetRun(); });
+    sd.chips = SL.buildChips(sd.chipsEl, SL.ALGOS, () => picks[sd.i], (id) => {
+      picks[sd.i] = id;
+      save();
+      compute(sd);
+      resetRun();
+    });
   });
 
   const chips = SL.buildModeChips($('modeChips'), s, () => { rebuildLook(); save(); });
 
   function syncDock() {
-    $('speed').value = SL.sliderFromSpeed(s.speed);
-    $('speedVal').textContent = SL.fmtSpeed(s.speed);
-    $('size').value = SL.sliderFromN(s.n);
-    $('sizeVal').textContent = s.n;
     chips.sync();
+    sides.forEach((sd) => sd.chips.sync());
   }
 
-  $('speed').addEventListener('input', () => { s.speed = SL.speedFromSlider(+$('speed').value); syncDock(); panel.sync(); save(); });
-  $('size').addEventListener('input', () => { $('sizeVal').textContent = SL.nFromSlider(+$('size').value); });
-  $('size').addEventListener('change', () => { s.n = SL.nFromSlider(+$('size').value); save(); panel.sync(); newArray(); });
-
   $('btnPlay').addEventListener('click', togglePlay);
-  $('btnReset').addEventListener('click', resetRun);
-  $('btnNew').addEventListener('click', newArray);
-  $('btnNew').innerHTML = SL.ICONS.shuffle;
-  $('btnReset').innerHTML = SL.ICONS.reset;
   $('soundHint').addEventListener('click', () => { audio.unlock(); $('soundHint').classList.add('hidden'); });
   window.addEventListener('pointerdown', () => audio.unlock(), { once: true });
 
   document.addEventListener('keydown', (e) => {
-    if (e.target.closest('input, select, textarea')) return;
+    if (e.target.closest('input, select, textarea') || document.querySelector('.modal.open')) return;
     if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
     else if (e.key === 'r' || e.key === 'R') resetRun();
     else if (e.key === 'n' || e.key === 'N') newArray();
@@ -166,12 +160,20 @@
   const panel = SL.buildPanel($('drawer'), s, (key, value) => {
     if (key === 'photo') photo = value;
     if (['n', 'order', 'newArray'].includes(key)) newArray();
+    if (key === 'reset') resetRun();
     if (['sound', 'wave', 'volume', 'pitchLow', 'pitchHigh'].includes(key)) audio.configure(s);
     rebuildLook();
     syncDock();
     save();
-  }, () => photo);
+  }, () => photo, { step: false });
   $('openCustomize').addEventListener('click', () => panel.open());
+
+  // ---------- video maker (opens in Battle mode with these two sorts) ----------
+  SL.initVideo(s, () => photo);
+  $('openVideo').addEventListener('click', () => {
+    setRunning(false);
+    SL.openVideo({ layout: 'battle', algos: [picks[0], picks[1]], mode: s.mode, n: s.n, order: s.order, speed: s.speed });
+  });
 
   window.addEventListener('resize', resize);
   resize();

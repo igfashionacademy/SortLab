@@ -85,6 +85,7 @@ window.SL = window.SL || {};
     reset: '<svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-7.4 4.95l1.85.77A6 6 0 1 0 12 6v3L7.5 5 12 1v3z"/></svg>',
     shuffle: '<svg viewBox="0 0 24 24"><path d="M16 3h5v5l-1.8-1.8-4.1 4.1-1.4-1.4 4.1-4.1L16 3zM3 5.6 4.4 4.2 19.8 19.6 18.4 21 3 5.6zM14.7 16.1l1.4-1.4 3.1 3.1L21 16v5h-5l1.8-1.8-3.1-3.1zM3 17.6l5.3-5.3 1.4 1.4L4.4 19 3 17.6z"/></svg>',
     close: '<svg viewBox="0 0 24 24"><path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4z"/></svg>',
+    stop: '<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>',
     trash: '<svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-3 6h12l-1 12H7L6 9z"/></svg>'
   };
 })(window.SL);

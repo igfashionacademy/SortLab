@@ -7,7 +7,7 @@
   const W = 1080, H = 1920;
   const FONT = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
 
-  let s, getPhoto, modal, canvas, ctx, vs;
+  let s, getPhoto, modal, canvas, ctx, vs, modeChips;
   let plan = null;
   let busy = null; // 'record' | 'preview' | null
   let cancelled = false;
@@ -44,7 +44,16 @@
     buildUI();
   };
 
-  SL.openVideo = function () {
+  // preset: optional settings to start from (e.g. Battle page passes its two sorts)
+  SL.openVideo = function (preset) {
+    if (preset && !busy) {
+      if (preset.layout === 'battle' && preset.algos) {
+        // keep any extra sequence sorts after the two battle picks
+        vs.algos = preset.algos.concat(vs.algos.slice(2));
+      }
+      ['layout', 'mode', 'n', 'order', 'speed'].forEach((k) => { if (preset[k] !== undefined) vs[k] = preset[k]; });
+      saveVs();
+    }
     modal.classList.add('open');
     syncUI();
     refresh();
@@ -73,10 +82,8 @@
             <h4>Sorts</h4>
             <div class="sort-list" data-k="list"></div>
             <button class="btn small" data-k="add">+ Add a sort</button>
+            <div class="field"><span>Style</span><div class="chips wrap" data-k="modeChips"></div></div>
             <div class="grid2">
-              <label class="field"><span>Style</span><select class="select" data-k="mode">
-                ${SL.MODES.map((m) => '<option value="' + m.id + '">' + m.name + '</option>').join('')}
-              </select></label>
               <label class="field"><span>Starting order</span><select class="select" data-k="order">
                 ${SL.ORDERS.map((o) => '<option value="' + o.id + '">' + o.name + '</option>').join('')}
               </select></label>
@@ -143,12 +150,6 @@
       changed(true);
     });
 
-    el.list.addEventListener('change', (e) => {
-      const sel = e.target.closest('select');
-      if (!sel) return;
-      vs.algos[+sel.dataset.i] = sel.value;
-      changed(false);
-    });
     el.list.addEventListener('click', (e) => {
       const b = e.target.closest('[data-rm]');
       if (!b || busy) return;
@@ -157,7 +158,7 @@
       changed(true);
     });
 
-    el.mode.addEventListener('change', () => { vs.mode = el.mode.value; changed(false); });
+    modeChips = SL.buildChips(el.modeChips, SL.MODES, () => vs.mode, (id) => { if (busy) return; vs.mode = id; changed(false); });
     el.order.addEventListener('change', () => { vs.order = el.order.value; changed(false); });
     el.fps.addEventListener('change', () => { vs.fps = +el.fps.value; changed(false); });
     el.handle.addEventListener('input', () => { vs.handle = el.handle.value; changed(false); });
@@ -188,12 +189,16 @@
     el.list.innerHTML = shown.map((id, i) => `
       <div class="sort-row">
         <span class="num">${battle ? (i ? 'B' : 'A') : i + 1}</span>
-        <select class="select" data-i="${i}">${SL.algoOptionsHTML(id)}</select>
+        <div class="chips" data-row="${i}"></div>
         <span class="dur" data-dur="${i}"></span>
         ${battle ? '' : '<button class="btn icon ghost small" data-rm="' + i + '" aria-label="Remove">' + SL.ICONS.trash + '</button>'}
       </div>`).join('');
+    el.list.querySelectorAll('[data-row]').forEach((row) => {
+      const i = +row.dataset.row;
+      SL.buildChips(row, SL.ALGOS, () => vs.algos[i], (id) => { if (busy) return; vs.algos[i] = id; changed(false); });
+    });
     el.add.hidden = battle || vs.algos.length >= 12;
-    el.mode.value = vs.mode;
+    modeChips.sync();
     el.order.value = vs.order;
     el.n.value = SL.sliderFromN(vs.n);
     el.speed.value = SL.sliderFromSpeed(vs.speed);

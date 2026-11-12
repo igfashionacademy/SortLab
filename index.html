@@ -21,27 +21,17 @@
     <button class="btn primary" id="openVideo">Make video</button>
   </header>
 
+  <div class="modebar"><div class="chips" id="modeChips"></div></div>
+
   <main class="stage-wrap">
     <canvas id="stage" aria-label="Sorting visualization"></canvas>
     <button class="sound-hint" id="soundHint">Tap for sound</button>
   </main>
 
   <section class="dock">
-    <div class="dock-row">
-      <select id="algoSelect" class="select algo-select" aria-label="Algorithm"></select>
-      <div class="chips" id="modeChips"></div>
-    </div>
-    <div class="dock-row">
-      <div class="btn-group">
-        <button class="btn icon" id="btnNew" title="New array (N)" aria-label="New array"></button>
-        <button class="btn primary icon" id="btnPlay" title="Play (Space)" aria-label="Play or pause"></button>
-        <button class="btn icon" id="btnStep" title="One step (Right arrow)" aria-label="One step"></button>
-        <button class="btn icon" id="btnReset" title="Reset (R)" aria-label="Reset"></button>
-      </div>
-      <label class="slider"><span>Speed <b id="speedVal"></b></span><input type="range" id="speed" min="0" max="1000"></label>
-      <label class="slider"><span>Items <b id="sizeVal"></b></span><input type="range" id="size" min="0" max="100" step="0.1"></label>
-      <button class="btn" id="openCustomize">Customize</button>
-    </div>
+    <div class="chips" id="algoChips"></div>
+    <button class="btn primary icon play" id="btnPlay" aria-label="Play or stop"></button>
+    <button class="btn" id="openCustomize">Customize</button>
   </section>
 
   <aside class="drawer" id="drawer"></aside>

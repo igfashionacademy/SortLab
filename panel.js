@@ -2,7 +2,8 @@
 (function (SL) {
   'use strict';
 
-  SL.buildPanel = function (el, s, onChange, getPhoto) {
+  SL.buildPanel = function (el, s, onChange, getPhoto, opts) {
+    opts = opts || {};
     el.innerHTML = `
       <div class="drawer-head">
         <div class="tabs">
@@ -38,12 +39,18 @@
           <button class="btn block" data-k="share">Copy share link</button>
         </div>
         <div class="pane" data-pane="data">
+          <h4>Controls</h4>
+          <div class="btn-row">
+            <button class="btn" data-k="newArray">${SL.ICONS.shuffle} New</button>
+            ${opts.step === false ? '' : '<button class="btn" data-k="step">' + SL.ICONS.step + ' Step</button>'}
+            <button class="btn" data-k="reset">${SL.ICONS.reset} Reset</button>
+          </div>
+          <p class="hint">Keyboard: Space play/stop${opts.step === false ? '' : ', Right arrow one step'}, R reset, N new array.</p>
           <label class="range-row"><span>Items <b data-v="n"></b></span><input type="range" min="0" max="100" step="0.1" data-k="n"></label>
           <label class="field"><span>Starting order</span><select class="select" data-k="order">
             ${SL.ORDERS.map((o) => '<option value="' + o.id + '">' + o.name + '</option>').join('')}
           </select></label>
           <label class="range-row"><span>Speed <b data-v="speed"></b></span><input type="range" min="0" max="1000" data-k="speed"></label>
-          <button class="btn block" data-k="newArray">New array</button>
           <p class="hint">Slow sorts like Bubble, Cycle or Stooge need a lot of steps on big arrays. Bogo gives up after a while unless the array is tiny.</p>
         </div>
         <div class="pane" data-pane="sound">
@@ -151,6 +158,8 @@
     });
 
     k('newArray').addEventListener('click', () => onChange('newArray'));
+    k('reset').addEventListener('click', () => onChange('reset'));
+    if (k('step')) k('step').addEventListener('click', () => onChange('step'));
     k('testSound').addEventListener('click', () => {
       SL.audio.unlock();
       let i = 0;
@@ -210,18 +219,37 @@
     return { sync, open: () => el.classList.add('open'), close: () => el.classList.remove('open') };
   };
 
-  // Mode chips used in the bottom dock
-  SL.buildModeChips = function (el, s, onPick) {
-    el.innerHTML = SL.MODES.map((m) => '<button class="chip" data-m="' + m.id + '">' + m.name + '</button>').join('');
-    const sync = () => el.querySelectorAll('[data-m]').forEach((b) => b.classList.toggle('active', b.dataset.m === s.mode));
+  // Chip row (used for styles and for algorithms)
+  // items: [{id, name, group?}], getValue(): current id, onPick(id)
+  SL.buildChips = function (el, items, getValue, onPick) {
+    let html = '', lastGroup = null;
+    items.forEach((it) => {
+      if (it.group && lastGroup !== null && it.group !== lastGroup) html += '<span class="chip-sep"></span>';
+      lastGroup = it.group || '';
+      html += '<button class="chip" data-id="' + it.id + '" title="' + (it.cx ? it.name + ' ' + it.cx : it.name) + '">' + it.name.replace(/ Sort$/, '') + '</button>';
+    });
+    el.innerHTML = html;
+    const sync = () => {
+      const v = getValue();
+      el.querySelectorAll('[data-id]').forEach((b) => {
+        const on = b.dataset.id === v;
+        b.classList.toggle('active', on);
+        if (on && el.scrollWidth > el.clientWidth) {
+          el.scrollLeft = b.offsetLeft - el.offsetLeft - el.clientWidth / 2 + b.offsetWidth / 2;
+        }
+      });
+    };
     el.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-m]');
+      const b = e.target.closest('[data-id]');
       if (!b) return;
-      s.mode = b.dataset.m;
+      onPick(b.dataset.id);
       sync();
-      onPick();
     });
     sync();
     return { sync };
+  };
+
+  SL.buildModeChips = function (el, s, onPick) {
+    return SL.buildChips(el, SL.MODES, () => s.mode, (id) => { s.mode = id; onPick(); });
   };
 })(window.SL);

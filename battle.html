@@ -16,47 +16,37 @@
       <a href="index.html">Visualizer</a>
       <a href="battle.html" class="active">Battle</a>
     </nav>
-    <a class="btn primary" href="index.html#video" id="toVideo">Make video</a>
+    <button class="btn primary" id="openVideo">Make video</button>
   </header>
+
+  <div class="modebar"><div class="chips" id="modeChips"></div></div>
 
   <main class="battle-grid">
     <section class="battle-panel">
       <div class="battle-head">
         <span class="tag">A</span>
-        <select class="select" id="algoA" aria-label="Algorithm A"></select>
-        <span class="battle-stat" id="statA"></span>
+        <div class="chips" id="algoA"></div>
       </div>
-      <div class="battle-canvas"><canvas id="stageA"></canvas></div>
+      <div class="battle-canvas"><canvas id="stageA"></canvas><span class="battle-stat" id="statA"></span></div>
     </section>
     <section class="battle-panel">
       <div class="battle-head">
         <span class="tag">B</span>
-        <select class="select" id="algoB" aria-label="Algorithm B"></select>
-        <span class="battle-stat" id="statB"></span>
+        <div class="chips" id="algoB"></div>
       </div>
-      <div class="battle-canvas"><canvas id="stageB"></canvas></div>
+      <div class="battle-canvas"><canvas id="stageB"></canvas><span class="battle-stat" id="statB"></span></div>
     </section>
     <div class="winner" id="winner"></div>
     <button class="sound-hint" id="soundHint">Tap for sound</button>
   </main>
 
-  <section class="dock">
-    <div class="dock-row">
-      <div class="btn-group">
-        <button class="btn icon" id="btnNew" title="New array (N)" aria-label="New array"></button>
-        <button class="btn primary icon" id="btnPlay" title="Start (Space)" aria-label="Start or pause"></button>
-        <button class="btn icon" id="btnReset" title="Reset (R)" aria-label="Reset"></button>
-      </div>
-      <label class="slider"><span>Speed <b id="speedVal"></b></span><input type="range" id="speed" min="0" max="1000"></label>
-      <label class="slider"><span>Items <b id="sizeVal"></b></span><input type="range" id="size" min="0" max="100" step="0.1"></label>
-      <button class="btn" id="openCustomize">Customize</button>
-    </div>
-    <div class="dock-row">
-      <div class="chips" id="modeChips"></div>
-    </div>
+  <section class="dock battle-dock">
+    <button class="btn primary icon play" id="btnPlay" aria-label="Start or stop"></button>
+    <button class="btn" id="openCustomize">Customize</button>
   </section>
 
   <aside class="drawer" id="drawer"></aside>
+  <div class="modal" id="videoModal"></div>
   <div class="toast" id="toast" role="status"></div>
 
   <script src="core.js"></script>
@@ -67,6 +57,7 @@
   <script src="renderer.js"></script>
   <script src="settings.js"></script>
   <script src="panel.js"></script>
+  <script src="video.js"></script>
   <script src="battle.js"></script>
 </body>
 </html>
