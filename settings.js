@@ -26,17 +26,22 @@
     pitchHigh: 1400
   };
 
-  function clean(s) {
-    const d = SL.DEFAULTS;
+  // Settings can come from a share link, so treat them as untrusted: known keys only, values within the UI's ranges.
+  function clean(raw) {
+    const d = SL.DEFAULTS, s = {};
+    Object.keys(d).forEach((k) => { s[k] = Object.prototype.hasOwnProperty.call(raw, k) ? raw[k] : d[k]; });
     if (!SL.ALGOS.some((a) => a.id === s.algo)) s.algo = d.algo;
     if (!SL.MODES.some((m) => m.id === s.mode)) s.mode = d.mode;
     if (!SL.PALETTES.some((p) => p.id === s.palette)) s.palette = d.palette;
     if (!SL.BACKGROUNDS.some((b) => b.id === s.bg)) s.bg = d.bg;
     if (!SL.ORDERS.some((o) => o.id === s.order)) s.order = d.order;
-    if (!Array.isArray(s.custom) || s.custom.length !== 3) s.custom = d.custom.slice();
+    if (!Array.isArray(s.custom) || s.custom.length !== 3 || !s.custom.every((c) => /^#[0-9a-f]{6}$/i.test(c))) s.custom = d.custom.slice();
+    if (!['sine', 'triangle', 'square', 'sawtooth'].includes(s.wave)) s.wave = d.wave;
+    ['spin', 'labels', 'tilePhoto', 'sound'].forEach((k) => { s[k] = !!s[k]; });
     s.n = SL.clamp(Math.round(+s.n || d.n), 4, 2000);
     s.speed = SL.clamp(Math.round(+s.speed || d.speed), 1, 100000);
-    ['glow', 'size', 'volume', 'pitchLow', 'pitchHigh'].forEach((k) => { if (!isFinite(+s[k])) s[k] = d[k]; s[k] = +s[k]; });
+    const R = { glow: [0, 200], size: [40, 140], volume: [0, 100], pitchLow: [60, 800], pitchHigh: [400, 3000] };
+    Object.keys(R).forEach((k) => { s[k] = isFinite(+s[k]) ? SL.clamp(+s[k], R[k][0], R[k][1]) : d[k]; });
     return s;
   }
 

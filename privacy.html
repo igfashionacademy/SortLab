@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Privacy Policy - SortLab</title>
+  <meta name="theme-color" content="#07090f">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="doc-page">
+  <header class="topbar">
+    <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28"><span>SortLab</span></a>
+    <nav class="nav">
+      <a href="index.html">Visualizer</a>
+      <a href="battle.html">Battle</a>
+    </nav>
+  </header>
+
+  <main class="doc">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 14 November 2026</p>
+
+    <h2>In short</h2>
+    <ul>
+      <li>SortLab has no accounts, no analytics, no advertising and sets no cookies of its own.</li>
+      <li>Sorting, drawing, sound and video creation all run inside your browser. Nothing you create is uploaded.</li>
+      <li>Two outside companies receive technical data when you visit: <strong>GitHub</strong>, which hosts the site, and <strong>Cloudflare</strong>, which runs the human check on the Visualizer and Battle pages.</li>
+      <li>Your settings, and a photo if you add one, are saved only in your own browser.</li>
+    </ul>
+
+    <h2>1. Who is responsible</h2>
+    <p>SortLab is a free, non-commercial project run by <span class="todo">[OPERATOR NAME – person or organisation responsible for SortLab]</span>, <span class="todo">[POSTAL ADDRESS, or at least city and country]</span>. Contact for privacy matters: <span class="todo">[CONTACT EMAIL – e.g. a dedicated address for SortLab]</span>.</p>
+    <p>This person or organisation is the data controller for the choices described here, such as which hosting and security services the site uses.</p>
+
+    <h2>2. Data processed when you visit</h2>
+    <h3>a) Hosting – GitHub Pages</h3>
+    <p>SortLab is served by GitHub Pages, operated by GitHub, Inc. (USA). Like any web server, GitHub receives the technical data your browser sends with each request: IP address, requested page, date and time, browser type and referring page. GitHub states that it logs visitors’ IP addresses for security purposes, whether or not they have a GitHub account.</p>
+    <ul>
+      <li><strong>Purpose:</strong> delivering the website and protecting it against abuse.</li>
+      <li><strong>Legal basis:</strong> legitimate interest in operating a secure website (Art. 6(1)(f) GDPR).</li>
+      <li><strong>Retention:</strong> decided by GitHub. The SortLab operator has no access to these logs.</li>
+      <li>More information: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub General Privacy Statement</a>.</li>
+    </ul>
+
+    <h3>b) Human check – Cloudflare Turnstile</h3>
+    <p>Before the Visualizer and Battle pages can be used, your browser loads Cloudflare Turnstile from <code>challenges.cloudflare.com</code>, operated by Cloudflare, Inc. (USA). To decide whether the visitor is a person or an automated program, Cloudflare receives your IP address and technical characteristics of your browser and device, and observes signals from the check itself.</p>
+    <ul>
+      <li><strong>Purpose:</strong> limiting automated traffic to the site.</li>
+      <li><strong>Legal basis:</strong> legitimate interest in protecting the site from automated abuse (Art. 6(1)(f) GDPR). You can object at any time (see section 7).</li>
+      <li><strong>What SortLab receives:</strong> only a pass/fail result inside your browser. It is not sent to any SortLab server, because there is none, and it is not stored.</li>
+      <li><strong>Retention:</strong> decided by Cloudflare. See the <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare Privacy Policy</a> and Cloudflare’s Turnstile privacy addendum.</li>
+      <li>Because the widget is embedded in SortLab’s pages, the operator may be jointly responsible with Cloudflare for collecting and passing on this data (CJEU, case C-40/17 “Fashion ID”). Cloudflare alone is responsible for what it does with the data afterwards.</li>
+      <li>The legal pages, including this one, do not load Turnstile.</li>
+    </ul>
+
+    <h2>3. Data stored only on your device</h2>
+    <p>SortLab uses your browser’s <code>localStorage</code> to remember your choices. This data never leaves your device and is not readable by the operator.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Key</th><th>What it holds</th><th>When it is written</th></tr>
+      <tr><td><code>sortlab.settings</code></td><td>Your look, data and sound settings (algorithm, style, colours, speed, volume…)</td><td>When you change a setting</td></tr>
+      <tr><td><code>sortlab.battle</code></td><td>The two algorithms picked on the Battle page</td><td>When you pick an algorithm in Battle</td></tr>
+      <tr><td><code>sortlab.video</code></td><td>Video maker settings, including the optional “Your name” text you type for the video overlay</td><td>When you change a video setting</td></tr>
+      <tr><td><code>sortlab.photo</code></td><td>A resized JPEG copy of a photo you add as background. Re-encoding removes embedded metadata such as camera details and GPS location.</td><td>Only when you choose “Add a photo”</td></tr>
+    </table></div>
+    <p>It stays until you delete it: use “Remove photo” in Customize, or clear this site’s data in your browser settings. Browser storage is shared by every page on the same web address (origin). On GitHub Pages, other projects published under the same GitHub account share this origin.</p>
+
+    <h2>4. Share links and videos</h2>
+    <p><strong>Share links:</strong> “Copy share link” puts your visual and sound settings after the <code>#</code> in the link. Browsers do not send this part to the server. The link contains no photo and no name. Any service where you paste the link will see it.</p>
+    <p><strong>Videos:</strong> videos are drawn and encoded in your browser and downloaded straight to your device. They are never uploaded by SortLab. The camera and microphone are never used.</p>
+
+    <h2>5. Transfers outside the EU</h2>
+    <p>GitHub and Cloudflare are based in the USA. Their policies describe the safeguards they use for transfers from the EU, such as the EU–US Data Privacy Framework or Standard Contractual Clauses (Art. 45–46 GDPR). <span class="todo">[OPERATOR TO VERIFY each provider’s current transfer mechanism]</span></p>
+
+    <h2>6. What SortLab does not do</h2>
+    <p>No tracking across sites, no profiling, no advertising, no sale or sharing of data for marketing, and no automated decisions with legal or similarly significant effects. The Turnstile check decides automatically whether the app opens. If you cannot pass it, please get in touch (see <a href="contact.html">Contact</a>).</p>
+
+    <h2>7. Your rights</h2>
+    <p>Under the GDPR you have the right to access your personal data (Art. 15), to have it corrected (Art. 16) or erased (Art. 17), to restrict its processing (Art. 18), to receive it in a portable form (Art. 20) and to object to processing based on legitimate interest (Art. 21).</p>
+    <p>The operator stores no data about you, so it usually cannot identify you or find anything to hand over (Art. 11 GDPR). For data held by GitHub or Cloudflare, those companies can act on your request directly. To make a request, write to <span class="todo">[CONTACT EMAIL – e.g. a dedicated address for SortLab]</span>.</p>
+    <p>You also have the right to complain to a supervisory authority. In Italy this is the <a href="https://www.garanteprivacy.it" rel="noopener">Garante per la protezione dei dati personali</a>. You can also complain in the EU country where you live or work.</p>
+
+    <h2>8. Changes</h2>
+    <p>This policy will be updated when SortLab or the services it uses change. The date at the top shows the latest version.</p>
+  </main>
+
+  <footer class="legal-foot" aria-label="Legal">
+    <a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="disclaimer.html">Disclaimer</a><a href="cookies.html">Cookie Information</a><a href="licenses.html">Copyright &amp; Licenses</a><a href="contact.html">Contact</a>
+  </footer>
+</body>
+</html>

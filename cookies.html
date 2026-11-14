@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cookie Information - SortLab</title>
+  <meta name="theme-color" content="#07090f">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="doc-page">
+  <header class="topbar">
+    <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28"><span>SortLab</span></a>
+    <nav class="nav">
+      <a href="index.html">Visualizer</a>
+      <a href="battle.html">Battle</a>
+    </nav>
+  </header>
+
+  <main class="doc">
+    <h1>Cookie Information</h1>
+    <p class="updated">Last updated: 14 November 2026</p>
+
+    <h2>Cookies</h2>
+    <p>SortLab sets no cookies of its own. There are no analytics, advertising, social media or tracking cookies.</p>
+
+    <h2>Browser storage (localStorage)</h2>
+    <p>To remember your choices between visits, SortLab saves the following in your browser. Nothing here is sent to anyone.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Key</th><th>What it holds</th><th>When it is written</th></tr>
+      <tr><td><code>sortlab.settings</code></td><td>Your look, data and sound settings (algorithm, style, colours, speed, volume…)</td><td>When you change a setting</td></tr>
+      <tr><td><code>sortlab.battle</code></td><td>The two algorithms picked on the Battle page</td><td>When you pick an algorithm in Battle</td></tr>
+      <tr><td><code>sortlab.video</code></td><td>Video maker settings, including the optional “Your name” text you type for the video overlay</td><td>When you change a video setting</td></tr>
+      <tr><td><code>sortlab.photo</code></td><td>A resized JPEG copy of a photo you add as background. Re-encoding removes embedded metadata such as camera details and GPS location.</td><td>Only when you choose “Add a photo”</td></tr>
+    </table></div>
+
+    <h2>Third-party services</h2>
+    <ul>
+      <li><strong>Cloudflare Turnstile</strong> (Visualizer and Battle pages): runs in a frame served from <code>challenges.cloudflare.com</code>. To tell people from bots, it reads technical information from your browser and may store data in that frame. This is governed by Cloudflare’s policies (see the <a href="privacy.html">Privacy Policy</a>). <span class="todo">[OPERATOR TO VERIFY in browser developer tools which cookies/storage the Turnstile frame sets]</span></li>
+      <li><strong>GitHub Pages</strong> (hosting): SortLab does not ask GitHub to set cookies. <span class="todo">[OPERATOR TO VERIFY that no cookies appear on the live site]</span></li>
+    </ul>
+
+    <h2>Why there is no cookie banner</h2>
+    <p>Under Art. 122 of the Italian Privacy Code (implementing Art. 5(3) of the ePrivacy Directive) and the Garante’s cookie guidelines of 10 June 2021, consent is not needed for storage that is strictly necessary to provide a service you have asked for. SortLab’s storage only remembers settings you choose and a photo you add, so no consent banner is shown. If tracking or analytics are ever added, they will stay off until you give consent.</p>
+
+    <h2>How to delete stored data</h2>
+    <ul>
+      <li>Photo: open Customize and choose “Remove photo”.</li>
+      <li>Everything: clear this site’s data in your browser settings (often under Privacy → Site data). SortLab then goes back to its default settings.</li>
+    </ul>
+  </main>
+
+  <footer class="legal-foot" aria-label="Legal">
+    <a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="disclaimer.html">Disclaimer</a><a href="cookies.html">Cookie Information</a><a href="licenses.html">Copyright &amp; Licenses</a><a href="contact.html">Contact</a>
+  </footer>
+</body>
+</html>

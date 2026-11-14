@@ -2,14 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>SortLab Battle - Race two sorting algorithms</title>
   <meta name="description" content="Pick two sorting algorithms and race them on the same array.">
   <meta name="theme-color" content="#07090f">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
+  <script src="gate.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
+  <div class="gate" id="humanGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+    <div class="gate-card">
+      <img src="favicon.svg" alt="" width="40" height="40">
+      <h3 id="gateTitle">Verify you are human</h3>
+      <p>Please complete the security check to continue to SortLab.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAGA0m3MCwA2aQMGH" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <p class="gate-note">This check is run by Cloudflare. <a href="privacy.html">How your data is handled</a></p>
+    </div>
+  </div>
   <header class="topbar">
     <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="28" height="28"><span>SortLab</span></a>
     <nav class="nav">
@@ -44,6 +56,10 @@
     <button class="btn primary icon play" id="btnPlay" aria-label="Start or stop"></button>
     <button class="btn" id="openCustomize">Customize</button>
   </section>
+
+  <footer class="legal-foot" aria-label="Legal">
+    <a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="disclaimer.html">Disclaimer</a><a href="cookies.html">Cookie Information</a><a href="licenses.html">Copyright &amp; Licenses</a><a href="contact.html">Contact</a>
+  </footer>
 
   <aside class="drawer" id="drawer"></aside>
   <div class="modal" id="videoModal"></div>

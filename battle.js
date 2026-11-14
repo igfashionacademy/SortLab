@@ -10,7 +10,8 @@
   const $ = (id) => document.getElementById(id);
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(BKEY) || '{}'); } catch (e) { /* ignore */ }
-  const picks = [saved.a || 'quick', saved.b || 'bubble'];
+  const known = (id, def) => (SL.ALGOS.some((a) => a.id === id) ? id : def);
+  const picks = [known(saved.a, 'quick'), known(saved.b, 'bubble')];
 
   let photo = null, look = null, dpr = 1, time = 0, last = performance.now();
   let seed = SL.randomSeed(), initial = null;
